@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>육군훈련소 인사평가 포털</title>
+<style>
+:root{--bg-color:#E2E5EB;--card-bg:#FFFFFF;--main-color:#41505f;--input-border:#D1D5DB;--text-color:#333333;--ui-bg:#F0F3F7;--admin-capsule-bg:#1e283c;--danger-color:#EF4444;}
+body{background-color:var(--bg-color);font-family:'Malgun Gothic','Noto Sans KR',sans-serif;margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:100vh;box-sizing:border-box;}
+.container{width:100%;max-width:360px;background:var(--card-bg);border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);overflow:hidden;position:relative;}
+.card-header{background-color:var(--main-color);padding:18px 16px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.card-header h1{color:#FFFFFF;font-size:16px;margin:0;font-weight:bold;text-align:left;}
+.admin-btn{background-color:var(--admin-capsule-bg);color:#FFFFFF;border:none;padding:5px 10px;border-radius:4px;font-weight:bold;cursor:pointer;font-size:11px;line-height:1;white-space:nowrap;box-shadow:inset 1px 1px rgba(0,0,0,0.3);transition:all 0.2s ease;}
+.timer-badge{display:none;background:#020617;color:#FFC800;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:bold;position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:10;}
+.card-body{padding:12px;}
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-weight:bold;color:var(--text-color);margin-bottom:8px;font-size:14px;}
+.form-group input,.form-group textarea{width:100%;padding:12px;border:1px solid var(--input-border);border-radius:8px;box-sizing:border-box;font-size:14px;outline:none;}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--main-color);}
+.btn-submit{width:auto;padding:10px 18px;background-color:var(--main-color);color:#FFFFFF;border:none;border-radius:8px;font-weight:bold;font-size:15px;cursor:pointer;transition:all 0.2s ease;}
+.btn-submit-full{width:100%;padding:14px;background-color:var(--main-color);color:#FFFFFF;border:none;border-radius:8px;font-weight:bold;font-size:15px;cursor:pointer;transition:all 0.2s ease;margin-top:10px;}
+button, .admin-btn, .btn-submit, .btn-submit-full, .btn-back, .btn-page, .btn-danger-full{transition:all 0.2s ease;}
+button:hover, .admin-btn:hover, .btn-submit:hover, .btn-submit-full:hover, .btn-back:hover, .btn-page:hover, .btn-danger-full:hover{filter:brightness(1.18);opacity:0.92;}
+button:active, .admin-btn:active, .btn-submit:active, .btn-submit-full:active, .btn-back:active, .btn-page:active, .btn-danger-full:active{filter:brightness(0.95);opacity:1;}
+#adminView{display:none;}
+.round-title-box{background:var(--ui-bg);border-radius:8px;padding:12px;text-align:center;font-size:15px;font-weight:bold;color:#1E293B;margin-bottom:14px;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.stat-box{background:var(--ui-bg);border-radius:8px;padding:12px 6px;text-align:center;}
+.stat-lbl{font-size:12px;font-weight:bold;color:#475569;margin-bottom:6px;}
+.stat-val{font-size:20px;font-weight:bold;color:#0F172A;}
+.section-title{font-weight:bold;font-size:14px;color:var(--text-color);margin-bottom:8px;}
+.question-preview-box{background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:16px;min-height:80px;font-size:13.5px;line-height:1.5;color:#334155;margin-bottom:16px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);}
+.nav-page-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;margin-bottom:14px;}
+.btn-back{background:var(--ui-bg);color:#334155;border:none;padding:10px 16px;border-radius:8px;font-weight:bold;font-size:13px;cursor:pointer;transition:all 0.2s ease;}
+.pagination-ctrl{display:flex;align-items:center;gap:6px;}
+.btn-page{background:var(--ui-bg);color:#94A3B8;border:none;width:32px;height:32px;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.2s ease;}
+.btn-page.active{background:var(--main-color);color:#FFFFFF;}
+.page-text{font-size:14px;font-weight:bold;color:#334155;padding:0 6px;}
+.btn-danger-full{background-color:var(--danger-color);color:white;border:none;padding:14px;border-radius:8px;width:100%;font-weight:bold;font-size:14px;cursor:pointer;transition:all 0.2s ease;}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+.modal.active{display:flex;}
+.modal-content{background:white;padding:20px;border-radius:16px;width:85%;max-width:320px;box-shadow:0 10px 25px rgba(0,0,0,0.15);animation:modalPopup 0.25s ease-out forwards;}
+@keyframes modalPopup{from{opacity:0;transform:scale(0.88);}to{opacity:1;transform:scale(1);}}
+.modal-btn-row{display:flex;gap:10px;margin-top:16px;}
+.modal-btn-row button{flex:1;padding:12px;border-radius:8px;font-weight:bold;font-size:14px;border:none;cursor:pointer;}
+.auth-loading-text{display:none;text-align:center;color:var(--main-color);font-weight:bold;font-size:13px;margin-bottom:12px;}
+.status-feedback-box{display:none;background:var(--ui-bg);border-radius:8px;padding:12px;text-align:center;font-size:13.5px;font-weight:bold;color:#334155;margin-bottom:20px;align-items:center;justify-content:center;gap:8px;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #cbd5e1;border-top-color:#41505f;border-radius:50%;animation:spin 0.7s linear infinite;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card-header" id="cardHeader">
+<h1 id="headerTitle">육군훈련소 인사평가 포털</h1>
+<button class="admin-btn" id="adminBtn" onclick="openAdminModal()">관리자</button>
+<div class="timer-badge" id="timerBadge">60:00</div>
+</div>
+<div id="loginView" class="card-body">
+<div class="form-group">
+<label>로블록스 아이디</label>
+<input type="text" id="username" placeholder="본인의 아이디를 입력하십시오.">
+</div>
+<div class="form-group">
+<label>응시자 계급</label>
+<input type="text" id="userRank" placeholder="본인의 계급을 입력하십시오.">
+</div>
+<div class="form-group" style="margin-bottom:24px;">
+<label>응시 코드</label>
+<input type="text" id="userCode" placeholder="사전 안내 받은 코드를 입력하십시오.">
+</div>
+<div id="regStatusBox" class="status-feedback-box"></div>
+<button id="verifyBtn" class="btn-submit" style="width:100%;padding:14px;" onclick="handleVerifyAction()">응시자 등록 확인</button>
+</div>
+<div id="examView" class="card-body" style="display:none;">
+<div id="singleQuestionBox" class="question-preview-box"></div>
+<div class="form-group">
+<textarea id="singleAnswerInput" rows="4" placeholder="답변을 입력하십시오."></textarea>
+</div>
+<div class="nav-page-row">
+<button id="btnPrevOrLobby" class="btn-back" onclick="handlePrevOrLobby()">로비</button>
+<span id="examPageText" class="page-text">1 / 1</span>
+<button id="btnNext" class="btn-submit" onclick="nextExamQ()">다음 &gt;</button>
+</div>
+<button id="btnSubmitExam" class="btn-submit-full" style="display:none;" onclick="submitAnswers()">제출하기</button>
+</div>
+<div id="adminView" class="card-body">
+<div id="dashActiveTitle" class="round-title-box">-</div>
+<div class="stats-grid">
+<div class="stat-box"><div class="stat-lbl">총 응시자</div><div class="stat-val" id="statTotal">0</div></div>
+<div class="stat-box"><div class="stat-lbl">제출자 수</div><div class="stat-val" id="statSubmitted">0</div></div>
+<div class="stat-box"><div class="stat-lbl">미제출자 수</div><div class="stat-val" id="statUnsubmitted">0</div></div>
+</div>
+<div class="section-title">문항 조회</div>
+<div id="questionPreviewBox" class="question-preview-box">문항을 불러오는 중...</div>
+<div class="nav-page-row">
+<button class="btn-back" onclick="logoutAdmin()">&lt; 뒤로가기</button>
+<div class="pagination-ctrl">
+<button id="btnPrevQ" class="btn-page" onclick="prevQ()">&lt;</button>
+<span id="pageText" class="page-text">1 / 1</span>
+<button id="btnNextQ" class="btn-page active" onclick="nextQ()">&gt;</button>
+</div>
+</div>
+<button id="btnDeleteAll" class="btn-danger-full" onclick="confirmDeleteAll()">모든 응답 삭제하기</button>
+</div>
+</div>
+<div id="customModal" class="modal">
+<div class="modal-content">
+<h3 id="customModalTitle" style="margin-top:0;margin-bottom:12px;font-size:16px;text-align:center;">알림</h3>
+<div id="customModalMessage" style="font-size:14px;color:#333;line-height:1.5;text-align:center;margin-bottom:16px;"></div>
+<div class="modal-btn-row" id="customModalBtns">
+<button id="customModalCancelBtn" style="background:#707A8A;color:white;display:none;" onclick="closeCustomModal(false)">취소</button>
+<button id="customModalOkBtn" style="background:var(--main-color);color:white;" onclick="closeCustomModal(true)">확인</button>
+</div>
+</div>
+</div>
+<div id="adminModal" class="modal">
+<div class="modal-content">
+<h3 style="margin-top:0;margin-bottom:16px;font-size:18px;">관리자 인증</h3>
+<div class="form-group" style="margin-bottom:12px;">
+<input type="password" id="adminPassword" placeholder="••••••••" onkeyup="if(event.key==='Enter')verifyAdmin()">
+</div>
+<div id="authStatusText" class="auth-loading-text">인증 중...</div>
+<div class="modal-btn-row">
+<button style="background:#707A8A;color:white;" onclick="closeAdminModal()">취소</button>
+<button style="background:var(--main-color);color:white;" onclick="verifyAdmin()">확인</button>
+</div>
+</div>
+</div>
+<div id="deleteModal" class="modal">
+<div class="modal-content">
+<h3 style="margin-top:0;margin-bottom:12px;font-size:16px;text-align:center;">응답 삭제하기</h3>
+<div id="deleteModalMsg" style="font-size:14px;color:#333;line-height:1.5;text-align:center;margin-bottom:16px;">정말로 모든 응답을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</div>
+<div class="modal-btn-row" id="deleteModalBtnRow">
+<button id="deleteCancelBtn" style="background:#707A8A;color:white;" onclick="closeDeleteModal()">취소</button>
+<button id="timedDeleteBtn" style="background:var(--danger-color);color:white;opacity:0.6;cursor:not-allowed;" disabled onclick="executeDeleteAll()">삭제(5)</button>
+</div>
+</div>
+</div>
+<div id="loadingModal" class="modal">
+<div class="modal-content" style="text-align:center;">
+<h3 style="margin-top:0;margin-bottom:16px;font-size:16px;">문항 불러오는 중</h3>
+<div style="width:100%;background:#E2E8F0;border-radius:6px;height:12px;overflow:hidden;margin-bottom:12px;">
+<div id="loadingProgressBar" style="width:0%;height:100%;background:#2563EB;transition:width 0.05s linear;"></div>
+</div>
+<div id="loadingProgressText" style="font-size:13px;color:#64748B;font-weight:bold;">0%</div>
+</div>
+</div>
+<script>
+let currentStats=null, currentQIndex=0, currentUser={id:"",rank:""}, timerInterval=null;
+let userQuestions=[], userAnswers=[], candidateQIndex=0, confirmCallback=null;
+let verifiedPayload=null, deleteTimer=null;
+function showCustomAlert(msg,cb){
+document.getElementById('customModalTitle').innerText='알림';
+document.getElementById('customModalMessage').innerText=msg;
+document.getElementById('customModalCancelBtn').style.display='none';
+confirmCallback=cb||null;
+document.getElementById('customModal').classList.add('active');
+}
+function showCustomConfirm(msg,cb){
+document.getElementById('customModalTitle').innerText='확인';
+document.getElementById('customModalMessage').innerText=msg;
+document.getElementById('customModalCancelBtn').style.display='block';
+confirmCallback=cb||null;
+document.getElementById('customModal').classList.add('active');
+}
+function closeCustomModal(res){
+document.getElementById('customModal').classList.remove('active');
+if(confirmCallback){
+const fn=confirmCallback;
+confirmCallback=null;
+fn(res);
+}
+}
+function openAdminModal(){
+document.getElementById('adminModal').classList.add('active');
+const authStatus=document.getElementById('authStatusText');
+authStatus.style.display='none';
+authStatus.style.color='var(--main-color)';
+document.getElementById('adminPassword').value='';
+}
+function closeAdminModal(){
+document.getElementById('adminModal').classList.remove('active');
+document.getElementById('adminPassword').value='';
+}
+function verifyAdmin(){
+const pw=document.getElementById('adminPassword').value;
+if(!pw)return;
+const authStatus=document.getElementById('authStatusText');
+authStatus.style.display='block';
+authStatus.style.color='var(--main-color)';
+authStatus.innerText='인증 중...';
+google.script.run.withSuccessHandler(res=>{
+if(res&&res.success){
+authStatus.style.display='none';
+closeAdminModal();
+document.getElementById('headerTitle').innerText='인사평가 관리자 대시보드';
+document.getElementById('adminBtn').style.display='none';
+document.getElementById('loginView').style.display='none';
+document.getElementById('adminView').style.display='block';
+applyParsedAdminData(res.stats);
+}else{
+authStatus.style.color='#EF4444';
+authStatus.innerText='비밀번호가 일치하지 않습니다.';
+}
+}).verifyAdminPw(pw);
+}
+function applyParsedAdminData(stats){
+currentStats=stats;
+document.getElementById('dashActiveTitle').innerText=stats.activeTitle||"-";
+document.getElementById('statTotal').innerText=stats.totalUsers||0;
+document.getElementById('statSubmitted').innerText=stats.submittedCount||0;
+document.getElementById('statUnsubmitted').innerText=stats.unsubmittedCount||0;
+currentQIndex=0;
+renderQuestionPreview();
+}
+function renderQuestionPreview(){
+if(!currentStats)return;
+const qList=currentStats.questions||[];
+if(qList.length===0){
+document.getElementById('questionPreviewBox').innerText='등록된 문항이 없습니다.';
+document.getElementById('pageText').innerText='0 / 0';
+return;
+}
+if(currentQIndex>=qList.length)currentQIndex=qList.length-1;
+if(currentQIndex<0)currentQIndex=0;
+document.getElementById('questionPreviewBox').innerText=`${currentQIndex+1}. ${qList[currentQIndex]}`;
+document.getElementById('pageText').innerText=`${currentQIndex+1} / ${qList.length}`;
+document.getElementById('btnPrevQ').className=(currentQIndex>0)?'btn-page active':'btn-page';
+document.getElementById('btnNextQ').className=(currentQIndex<qList.length-1)?'btn-page active':'btn-page';
+}
+function prevQ(){
+if(currentQIndex>0){
+currentQIndex--;
+renderQuestionPreview();
+}
+}
+function nextQ(){
+if(!currentStats)return;
+const qList=currentStats.questions||[];
+if(currentQIndex<qList.length-1){
+currentQIndex++;
+renderQuestionPreview();
+}
+}
+function logoutAdmin(){
+document.getElementById('headerTitle').innerText='육군훈련소 인사평가 포털';
+document.getElementById('adminBtn').style.display='block';
+document.getElementById('adminView').style.display='none';
+document.getElementById('loginView').style.display='block';
+}
+function confirmDeleteAll(){
+const btn=document.getElementById('timedDeleteBtn');
+const cancelBtn=document.getElementById('deleteCancelBtn');
+const msgDiv=document.getElementById('deleteModalMsg');
+btn.disabled=true;
+btn.style.opacity='0.6';
+btn.style.cursor='not-allowed';
+cancelBtn.disabled=false;
+msgDiv.innerText='정말로 모든 응답을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.';
+let sec=5;
+btn.innerText=`삭제(${sec})`;
+document.getElementById('deleteModal').classList.add('active');
+if(deleteTimer)clearInterval(deleteTimer);
+deleteTimer=setInterval(()=>{
+sec--;
+if(sec>0){
+btn.innerText=`삭제(${sec})`;
+}else{
+clearInterval(deleteTimer);
+btn.innerText='삭제';
+btn.disabled=false;
+btn.style.opacity='1';
+btn.style.cursor='pointer';
+}
+},1000);
+}
+function closeDeleteModal(){
+if(deleteTimer)clearInterval(deleteTimer);
+document.getElementById('deleteModal').classList.remove('active');
+}
+function executeDeleteAll(){
+const btn=document.getElementById('timedDeleteBtn');
+const cancelBtn=document.getElementById('deleteCancelBtn');
+const msgDiv=document.getElementById('deleteModalMsg');
+btn.disabled=true;
+cancelBtn.disabled=true;
+btn.innerHTML='<span class="spinner" style="border-top-color:#fff;width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></span> 응답 삭제 중';
+msgDiv.innerText='응답을 삭제하는 중입니다. 잠시만 기다려주세요...';
+google.script.run.withSuccessHandler(r=>{
+closeDeleteModal();
+if(r&&r.success){
+showCustomAlert('초기화되었습니다.');
+applyParsedAdminData(r.stats);
+}else{
+showCustomAlert('초기화 중 오류가 발생했습니다.');
+}
+}).deleteAllResponses();
+}
+function handleVerifyAction(){
+const verifyBtn=document.getElementById('verifyBtn');
+if(verifyBtn.innerText==="인사평가 응시 시작"){
+startLoadingAndEnterExam();
+return;
+}
+const id=document.getElementById('username').value.trim();
+const rank=document.getElementById('userRank').value.trim();
+const code=document.getElementById('userCode').value.trim();
+if(!id||!rank||!code){
+showCustomAlert('모든 항목을 입력해 주세요.');
+return;
+}
+const statusBox=document.getElementById('regStatusBox');
+statusBox.style.display='flex';
+statusBox.innerHTML='<span class="spinner"></span> 등록 확인 중';
+google.script.run.withSuccessHandler(res=>{
+if(res.statusReason==='noActive'){
+statusBox.innerHTML='📌 현재 진행 중인 인사평가 없음';
+}else if(res.statusReason==='notFound'){
+statusBox.innerHTML='❌ 등록 정보 없음';
+}else if(res.statusReason==='submitted'){
+statusBox.innerHTML='📋 제출 완료된 응시자';
+}else if(res.statusReason==='timedOut'){
+statusBox.innerHTML='⌛ 응시 도중 탈락자';
+}else if(res.success){
+statusBox.innerHTML='✅ 인사평가 응시 가능';
+verifiedPayload=res;
+verifyBtn.innerText='인사평가 응시 시작';
+}else{
+statusBox.innerHTML='❌ 등록 정보 없음';
+}
+}).verifyUser(id,rank,code);
+}
+function startLoadingAndEnterExam(){
+const modal=document.getElementById('loadingModal');
+const bar=document.getElementById('loadingProgressBar');
+const txt=document.getElementById('loadingProgressText');
+modal.classList.add('active');
+bar.style.width='0%';
+txt.innerText='0%';
+let progress=0;
+const interval=setInterval(()=>{
+progress+=4;
+bar.style.width=progress+'%';
+txt.innerText=progress+'%';
+if(progress>=100){
+clearInterval(interval);
+setTimeout(()=>{
+modal.classList.remove('active');
+enterExamView(verifiedPayload);
+},200);
+}
+},40);
+}
+function enterExamView(res){
+currentUser={id:document.getElementById('username').value.trim(),rank:document.getElementById('userRank').value.trim()};
+userQuestions=res.questions||[];
+userAnswers=new Array(userQuestions.length).fill("");
+candidateQIndex=0;
+document.getElementById('headerTitle').innerText='인사평가 문항';
+document.getElementById('adminBtn').style.display='none';
+document.getElementById('loginView').style.display='none';
+document.getElementById('examView').style.display='block';
+document.getElementById('timerBadge').style.display='block';
+renderCandidateQuestion();
+startTimer(res.remainingSeconds||3600);
+}
+function renderCandidateQuestion(){
+if(userQuestions.length===0)return;
+document.getElementById('singleQuestionBox').innerText=`${candidateQIndex+1}. ${userQuestions[candidateQIndex]}`;
+document.getElementById('singleAnswerInput').value=userAnswers[candidateQIndex]||"";
+document.getElementById('examPageText').innerText=`${candidateQIndex+1} / ${userQuestions.length}`;
+const prevOrLobbyBtn=document.getElementById('btnPrevOrLobby');
+if(candidateQIndex===0){
+prevOrLobbyBtn.innerText='로비';
+}else{
+prevOrLobbyBtn.innerText='< 이전';
+}
+const nextBtn=document.getElementById('btnNext');
+const submitBtn=document.getElementById('btnSubmitExam');
+if(candidateQIndex===userQuestions.length-1){
+nextBtn.style.display='none';
+submitBtn.style.display='block';
+submitBtn.innerText='제출하기';
+submitBtn.disabled=false;
+}else{
+nextBtn.style.display='block';
+submitBtn.style.display='none';
+}
+}
+function saveCurrentAnswer(){
+userAnswers[candidateQIndex]=document.getElementById('singleAnswerInput').value.trim();
+}
+function handlePrevOrLobby(){
+if(candidateQIndex===0){
+showCustomConfirm('로비로 돌아가시겠습니까? 작성 중인 내용은 초기화됩니다.', res=>{
+if(res){resetToLobby();}
+});
+}else{
+if(candidateQIndex>0){
+saveCurrentAnswer();
+candidateQIndex--;
+renderCandidateQuestion();
+}
+}
+}
+function nextExamQ(){
+saveCurrentAnswer();
+if(!userAnswers[candidateQIndex]){
+showCustomAlert(`${candidateQIndex+1}번 문항에 답변을 입력해주세요.`);
+return;
+}
+if(candidateQIndex<userQuestions.length-1){
+candidateQIndex++;
+renderCandidateQuestion();
+}
+}
+function startTimer(sec){
+let rem=sec;
+updateTimerText(rem);
+if(timerInterval)clearInterval(timerInterval);
+timerInterval=setInterval(()=>{
+rem--;
+updateTimerText(rem);
+if(rem<=0){
+clearInterval(timerInterval);
+showCustomAlert('시간이 초과되어 자동 처리됩니다.',()=>{
+google.script.run.handleTimeOut(currentUser.id,currentUser.rank);
+resetToLobby();
+});
+}
+},1000);
+}
+function updateTimerText(rem){
+const m=Math.floor(rem/60);
+const s=rem%60;
+document.getElementById('timerBadge').innerText=`${m}:${s<10?'0':''}${s}`;
+}
+function submitAnswers(){
+saveCurrentAnswer();
+for(let i=0;i<userAnswers.length;i++){
+if(!userAnswers[i]){
+candidateQIndex=i;
+renderCandidateQuestion();
+showCustomAlert(`${i+1}번 문항에 답변을 입력해주세요.`);
+return;
+}
+}
+const submitBtn=document.getElementById('btnSubmitExam');
+submitBtn.innerText='제출 중';
+submitBtn.disabled=true;
+google.script.run.withSuccessHandler(res=>{
+if(res&&res.success){
+showCustomAlert('성공적으로 제출되었습니다.',()=>{
+resetToLobby();
+});
+}else{
+submitBtn.innerText='제출하기';
+submitBtn.disabled=false;
+showCustomAlert('제출 처리 중 오류가 발생했습니다.');
+}
+}).submitExamAnswers(currentUser.id,currentUser.rank,userAnswers);
+}
+function resetToLobby(){
+if(timerInterval)clearInterval(timerInterval);
+document.getElementById('examView').style.display='none';
+document.getElementById('timerBadge').style.display='none';
+document.getElementById('loginView').style.display='block';
+document.getElementById('headerTitle').innerText='육군훈련소 인사평가 포털';
+document.getElementById('adminBtn').style.display='block';
+document.getElementById('username').value='';
+document.getElementById('userRank').value='';
+document.getElementById('userCode').value='';
+document.getElementById('regStatusBox').style.display='none';
+document.getElementById('verifyBtn').innerText='응시자 등록 정보 확인';
+}
+</script>
+</body>
+</html>
